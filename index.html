@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WS Barbearia — Agendamento</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold:#C9A84C;--gold-light:#E2C06A;--gold-dark:#9E7E30;
+    --black:#0D0D0D;--dark:#141414;--card:#1C1C1C;--card2:#222222;
+    --border:#2E2E2E;--text:#F5F0E8;--muted:#888;--success:#4CAF7D;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--black);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;}
+  header{background:var(--dark);border-bottom:1px solid var(--border);padding:0 2rem;position:sticky;top:0;z-index:100;}
+  .header-inner{max-width:1000px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:70px;}
+  .logo{display:flex;align-items:center;gap:12px;}
+  .logo-icon{width:40px;height:40px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:700;font-size:16px;color:var(--black);}
+  .logo-text{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--text);letter-spacing:1px;}
+  .logo-sub{font-size:0.65rem;color:var(--gold);letter-spacing:3px;text-transform:uppercase;font-weight:500;display:block;line-height:1;}
+  .hero{background:linear-gradient(135deg,var(--dark) 0%,#1a1200 100%);border-bottom:1px solid var(--border);padding:60px 2rem 50px;text-align:center;position:relative;overflow:hidden;}
+  .hero::before{content:'';position:absolute;top:-50%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(201,168,76,0.08) 0%,transparent 70%);pointer-events:none;}
+  .hero-badge{display:inline-block;background:rgba(201,168,76,0.12);border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-size:0.7rem;letter-spacing:3px;text-transform:uppercase;font-weight:600;padding:6px 16px;border-radius:20px;margin-bottom:20px;}
+  .hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5vw,3.5rem);font-weight:700;line-height:1.15;margin-bottom:14px;}
+  .hero h1 em{font-style:italic;color:var(--gold);}
+  .hero p{color:var(--muted);font-size:0.95rem;font-weight:300;margin-bottom:28px;}
+  .hero-hours{display:inline-flex;gap:24px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 28px;font-size:0.8rem;color:var(--muted);}
+  .hero-hours span strong{color:var(--text);font-weight:600;display:block;font-size:0.85rem;margin-bottom:2px;}
+  .steps-bar{display:flex;align-items:center;justify-content:center;padding:28px 2rem;background:var(--dark);border-bottom:1px solid var(--border);}
+  .step{display:flex;align-items:center;gap:8px;font-size:0.8rem;color:var(--muted);font-weight:500;transition:color 0.3s;}
+  .step.active{color:var(--gold);}
+  .step.done{color:var(--success);}
+  .step-num{width:26px;height:26px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:600;flex-shrink:0;}
+  .step.active .step-num{background:var(--gold);color:var(--black);border-color:var(--gold);}
+  .step.done .step-num{background:var(--success);color:white;border-color:var(--success);}
+  .step-line{width:40px;height:1.5px;background:var(--border);margin:0 8px;}
+  main{max-width:860px;margin:0 auto;padding:40px 2rem 80px;}
+  .section{display:none;}
+  .section.active{display:block;}
+  .section-title{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:600;margin-bottom:6px;}
+  .section-sub{color:var(--muted);font-size:0.85rem;margin-bottom:28px;}
+
+  /* SERVIÇOS — combo em destaque no topo */
+  .combo-destaque{background:linear-gradient(135deg,rgba(201,168,76,0.12),rgba(201,168,76,0.04));border:2px solid var(--gold);border-radius:16px;padding:20px 24px;margin-bottom:16px;cursor:pointer;transition:all 0.25s;position:relative;overflow:hidden;display:flex;align-items:center;gap:20px;}
+  .combo-destaque::before{content:'⭐ MAIS POPULAR';position:absolute;top:10px;right:14px;font-size:0.62rem;font-weight:700;color:var(--gold);letter-spacing:2px;}
+  .combo-destaque:hover{background:linear-gradient(135deg,rgba(201,168,76,0.18),rgba(201,168,76,0.08));transform:translateY(-2px);}
+  .combo-destaque.selected{border-color:var(--gold-light);box-shadow:0 0 0 3px rgba(201,168,76,0.15);}
+  .combo-icon{font-size:2.4rem;flex-shrink:0;}
+  .combo-info{flex:1;}
+  .combo-name{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;margin-bottom:4px;}
+  .combo-desc{color:var(--muted);font-size:0.8rem;margin-bottom:6px;}
+  .combo-price-row{display:flex;align-items:center;gap:10px;}
+  .combo-price{color:var(--gold);font-size:1.2rem;font-weight:700;}
+  .combo-old{color:var(--muted);font-size:0.8rem;text-decoration:line-through;}
+  .combo-save{background:rgba(76,175,125,0.15);color:var(--success);font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+  .combo-check{width:28px;height:28px;border-radius:50%;border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.2s;}
+  .combo-destaque.selected .combo-check{background:var(--gold);color:var(--black);}
+
+  .services-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;}
+  .service-card{background:var(--card);border:2px solid var(--border);border-radius:14px;padding:20px 16px;cursor:pointer;transition:all 0.25s;text-align:center;position:relative;overflow:hidden;}
+  .service-card:hover{border-color:rgba(201,168,76,0.4);transform:translateY(-2px);}
+  .service-card.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+  .service-icon{font-size:1.8rem;margin-bottom:8px;display:block;}
+  .service-name{font-family:'Playfair Display',serif;font-size:0.95rem;font-weight:600;margin-bottom:4px;}
+  .service-desc{color:var(--muted);font-size:0.72rem;margin-bottom:6px;}
+  .service-price{color:var(--gold);font-size:0.95rem;font-weight:700;}
+  .service-check{position:absolute;top:8px;right:8px;width:18px;height:18px;background:var(--gold);border-radius:50%;display:none;align-items:center;justify-content:center;font-size:9px;color:var(--black);}
+  .service-card.selected .service-check{display:flex;}
+
+  .ou-separador{text-align:center;color:var(--muted);font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;margin:4px 0 16px;position:relative;}
+  .ou-separador::before,.ou-separador::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border);}
+  .ou-separador::before{left:0;}
+  .ou-separador::after{right:0;}
+
+  .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:30px;}
+  @media(max-width:600px){.week-grid{grid-template-columns:repeat(4,1fr);}.combo-destaque{flex-direction:column;text-align:center;}.combo-price-row{justify-content:center;}}
+  .day-card{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:12px 8px;cursor:pointer;text-align:center;transition:all 0.25s;}
+  .day-card:hover:not(.unavailable){border-color:rgba(201,168,76,0.4);}
+  .day-card.selected{border-color:var(--gold);background:rgba(201,168,76,0.06);}
+  .day-card.unavailable{opacity:0.3;cursor:not-allowed;}
+  .day-name{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:4px;}
+  .day-num{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--text);}
+  .day-card.selected .day-num{color:var(--gold);}
+  .day-card.today{position:relative;}
+  .day-card.today::after{content:'';width:4px;height:4px;background:var(--gold);border-radius:50%;position:absolute;bottom:6px;left:50%;transform:translateX(-50%);}
+  .time-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:36px;}
+  .time-slot{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;font-size:0.9rem;font-weight:500;}
+  .time-slot:hover:not(.taken):not(.bloqueado){border-color:rgba(201,168,76,0.4);color:var(--gold);}
+  .time-slot.selected{border-color:var(--gold);color:var(--gold);background:rgba(201,168,76,0.06);font-weight:600;}
+  .time-slot.taken{opacity:0.3;cursor:not-allowed;text-decoration:line-through;}
+  .time-slot.bloqueado{opacity:0.2;cursor:not-allowed;text-decoration:line-through;color:var(--muted);}
+  .form-group{margin-bottom:20px;}
+  .form-group label{display:block;font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .form-group input{width:100%;background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'Inter',sans-serif;font-size:0.95rem;outline:none;transition:border-color 0.2s;}
+  .form-group input:focus{border-color:var(--gold);}
+  .form-group input::placeholder{color:#555;}
+  .summary-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:28px;}
+  .summary-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:2px;color:var(--gold);font-weight:600;margin-bottom:16px;}
+  .summary-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.9rem;}
+  .summary-row:last-child{border-bottom:none;}
+  .summary-row span:first-child{color:var(--muted);}
+  .summary-row span:last-child{font-weight:600;}
+  .summary-total{color:var(--gold)!important;font-size:1.1rem!important;}
+  .btn-row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:10px;}
+  .btn{padding:14px 28px;border-radius:10px;font-family:'Inter',sans-serif;font-size:0.9rem;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;letter-spacing:0.5px;}
+  .btn-primary{background:var(--gold);color:var(--black);flex:1;}
+  .btn-primary:hover{background:var(--gold-light);transform:translateY(-1px);}
+  .btn-ghost{background:transparent;color:var(--muted);border:1.5px solid var(--border);}
+  .btn-ghost:hover{border-color:var(--muted);color:var(--text);}
+  .success-screen{text-align:center;padding:60px 20px;}
+  .success-icon{width:80px;height:80px;background:rgba(76,175,125,0.15);border:2px solid var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;margin:0 auto 24px;animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+  @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+  .success-screen h2{font-family:'Playfair Display',serif;font-size:1.8rem;margin-bottom:10px;}
+  .success-screen p{color:var(--muted);font-size:0.95rem;margin-bottom:6px;}
+  .success-detail{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 28px;margin:28px auto;max-width:400px;text-align:left;}
+  .divider{display:flex;align-items:center;gap:12px;margin-bottom:24px;}
+  .divider-line{flex:1;height:1px;background:var(--border);}
+  .divider-text{font-size:0.72rem;color:var(--gold);font-weight:600;letter-spacing:2px;text-transform:uppercase;}
+  .error-msg{display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;padding:10px 14px;border-radius:8px;font-size:0.82rem;margin-bottom:12px;}
+  .error-msg.show{display:block;}
+  .loading-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+  .loading-overlay.show{display:flex;}
+  .spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-text{color:var(--muted);font-size:0.85rem;}
+</style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <span class="loading-text">Salvando agendamento...</span>
+</div>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">WS</div>
+      <div>
+        <span class="logo-text">WS Barbearia</span>
+        <span class="logo-sub">desde sempre</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-badge">✂ Agendamento Online</div>
+  <h1>Agende seu <em>corte</em><br>com a gente</h1>
+  <p>Escolha o serviço, dia e horário. Rápido e sem complicação.</p>
+  <div class="hero-hours">
+    <span><strong>Seg – Sex</strong>9h às 19h</span>
+    <span style="width:1px;background:#2E2E2E;"></span>
+    <span><strong>Sábado</strong>8h às 16h</span>
+    <span style="width:1px;background:#2E2E2E;"></span>
+    <span><strong>Domingo</strong>Fechado</span>
+  </div>
+</div>
+
+<div class="steps-bar">
+  <div class="step active" id="step1"><div class="step-num">1</div><span>Serviço</span></div>
+  <div class="step-line"></div>
+  <div class="step" id="step2"><div class="step-num">2</div><span>Dia & Hora</span></div>
+  <div class="step-line"></div>
+  <div class="step" id="step3"><div class="step-num">3</div><span>Cadastro</span></div>
+  <div class="step-line"></div>
+  <div class="step" id="step4"><div class="step-num">4</div><span>Confirmar</span></div>
+</div>
+
+<main>
+  <!-- SEÇÃO 1: SERVIÇOS -->
+  <div class="section active" id="sec1">
+    <p class="section-title">O que você vai fazer?</p>
+    <p class="section-sub">Selecione um ou mais serviços</p>
+
+    <!-- COMBO EM DESTAQUE NO TOPO -->
+    <div class="combo-destaque" id="comboCard" onclick="selectCombo()">
+      <div class="combo-icon">👑</div>
+      <div class="combo-info">
+        <p class="combo-name">Combo Completo</p>
+        <p class="combo-desc">Cabelo + Barba + Sobrancelha — tudo em um só atendimento</p>
+        <div class="combo-price-row">
+          <span class="combo-price">R$ 65,00</span>
+          <span class="combo-old">R$ 75,00</span>
+          <span class="combo-save">Economize R$ 10</span>
+        </div>
+      </div>
+      <div class="combo-check" id="comboCheck">✓</div>
+    </div>
+
+    <div class="ou-separador">ou escolha separado</div>
+
+    <!-- SERVIÇOS INDIVIDUAIS -->
+    <div class="services-grid">
+      <div class="service-card" data-service="Cabelo" data-price="35" onclick="toggleService(this)">
+        <div class="service-check">✓</div>
+        <span class="service-icon">✂️</span>
+        <p class="service-name">Cabelo</p>
+        <p class="service-desc">Corte masculino</p>
+        <p class="service-price">R$ 35,00</p>
+      </div>
+      <div class="service-card" data-service="Barba" data-price="25" onclick="toggleService(this)">
+        <div class="service-check">✓</div>
+        <span class="service-icon">🪒</span>
+        <p class="service-name">Barba</p>
+        <p class="service-desc">Aparo & navalha</p>
+        <p class="service-price">R$ 25,00</p>
+      </div>
+      <div class="service-card" data-service="Sobrancelha" data-price="15" onclick="toggleService(this)">
+        <div class="service-check">✓</div>
+        <span class="service-icon">👁️</span>
+        <p class="service-name">Sobrancelha</p>
+        <p class="service-desc">Design completo</p>
+        <p class="service-price">R$ 15,00</p>
+      </div>
+    </div>
+
+    <div class="error-msg" id="err1">Selecione pelo menos um serviço para continuar.</div>
+    <div class="btn-row" style="justify-content:flex-end;">
+      <button class="btn btn-primary" onclick="goToStep(2)">Escolher data →</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: DIA E HORA -->
+  <div class="section" id="sec2">
+    <p class="section-title">Quando prefere?</p>
+    <p class="section-sub">Próximos dias disponíveis</p>
+    <div class="divider"><div class="divider-line"></div><span class="divider-text">Dia</span><div class="divider-line"></div></div>
+    <div class="week-grid" id="weekGrid"></div>
+    <div class="divider"><div class="divider-line"></div><span class="divider-text">Horário</span><div class="divider-line"></div></div>
+    <div class="time-grid" id="timeGrid">
+      <p style="color:var(--muted);font-size:0.85rem;grid-column:1/-1;">Selecione um dia primeiro.</p>
+    </div>
+    <div class="error-msg" id="err2">Selecione dia e horário para continuar.</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToStep(1)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Meus dados →</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3: CADASTRO -->
+  <div class="section" id="sec3">
+    <p class="section-title">Seus dados</p>
+    <p class="section-sub">Só precisamos do seu nome para identificar o agendamento</p>
+    <div class="form-group">
+      <label>Seu nome completo</label>
+      <input type="text" id="clienteName" placeholder="Ex: João Silva" maxlength="60">
+    </div>
+    <div class="error-msg" id="err3">Digite seu nome para continuar.</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToStep(2)">← Voltar</button>
+      <button class="btn btn-primary" onclick="goToStep(4)">Revisar →</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 4: CONFIRMAÇÃO -->
+  <div class="section" id="sec4">
+    <p class="section-title">Tudo certo?</p>
+    <p class="section-sub">Confira os detalhes do seu agendamento</p>
+    <div class="summary-card">
+      <p class="summary-label">Resumo do Agendamento</p>
+      <div class="summary-row"><span>Cliente</span><span id="resNome">—</span></div>
+      <div class="summary-row"><span>Serviço</span><span id="resServico">—</span></div>
+      <div class="summary-row"><span>Dia</span><span id="resDia">—</span></div>
+      <div class="summary-row"><span>Horário</span><span id="resHora">—</span></div>
+      <div class="summary-row"><span>Total</span><span id="resTotal" class="summary-total">—</span></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="goToStep(3)">← Voltar</button>
+      <button class="btn btn-primary" onclick="confirmarAgendamento()">✓ Confirmar agendamento</button>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 5: SUCESSO -->
+  <div class="section" id="sec5">
+    <div class="success-screen">
+      <div class="success-icon">✓</div>
+      <h2>Agendado com sucesso!</h2>
+      <p>Até lá, <strong id="nomeConfirmado"></strong>!</p>
+      <div class="success-detail">
+        <div class="summary-row"><span>Serviço</span><span id="confServico"></span></div>
+        <div class="summary-row"><span>Dia</span><span id="confDia"></span></div>
+        <div class="summary-row"><span>Horário</span><span id="confHora"></span></div>
+        <div class="summary-row"><span>Total</span><span id="confTotal" style="color:var(--gold);font-weight:700;"></span></div>
+      </div>
+      <button class="btn btn-primary" style="margin-top:8px;" onclick="novoAgendamento()">Fazer outro agendamento</button>
+    </div>
+  </div>
+</main>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, push, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const app = initializeApp({ databaseURL: "https://ws-barbearia-43d6b-default-rtdb.firebaseio.com" });
+  const db = getDatabase(app);
+
+  const DIAS_PT = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const MESES_PT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  let selectedServices = [];
+  let selectedPrices = [];
+  let selectedDay = null;
+  let selectedTime = null;
+  let agendamentosCache = {};
+  let horariosBloquedos = {};
+
+  function formatMoney(v){ return 'R$ '+v.toFixed(2).replace('.',','); }
+  function getTotal(){ return selectedPrices.reduce((a,b)=>a+b,0); }
+
+  window.toggleService = function(card){
+    // Desmarca combo
+    document.getElementById('comboCard').classList.remove('selected');
+    document.getElementById('comboCheck').textContent = '✓';
+    selectedServices = selectedServices.filter(x=>x!=='Combo Completo');
+    selectedPrices = [];
+
+    const s = card.dataset.service;
+    const p = parseFloat(card.dataset.price);
+    if(card.classList.contains('selected')){
+      card.classList.remove('selected');
+      const idx = selectedServices.indexOf(s);
+      if(idx>-1) selectedServices.splice(idx,1);
+    } else {
+      card.classList.add('selected');
+      if(!selectedServices.includes(s)) selectedServices.push(s);
+    }
+    // Recalcula preços
+    selectedPrices = selectedServices.map(sv => {
+      const c = document.querySelector(`.service-card[data-service="${sv}"]`);
+      return c ? parseFloat(c.dataset.price) : 0;
+    });
+  }
+
+  window.selectCombo = function(){
+    document.querySelectorAll('.service-card').forEach(c=>c.classList.remove('selected'));
+    const combo = document.getElementById('comboCard');
+    if(combo.classList.contains('selected')){
+      combo.classList.remove('selected');
+      document.getElementById('comboCheck').textContent = '✓';
+      selectedServices = [];
+      selectedPrices = [];
+    } else {
+      combo.classList.add('selected');
+      document.getElementById('comboCheck').textContent = '✓';
+      selectedServices = ['Combo Completo'];
+      selectedPrices = [65];
+    }
+  }
+
+  async function carregarDados(){
+    try {
+      const [snapAg, snapBl] = await Promise.all([
+        get(ref(db,'agendamentos')),
+        get(ref(db,'horarios_bloqueados'))
+      ]);
+      agendamentosCache = {};
+      if(snapAg.exists()) Object.values(snapAg.val()).forEach(a=>{
+        if(!agendamentosCache[a.data]) agendamentosCache[a.data]=[];
+        agendamentosCache[a.data].push(a.hora);
+      });
+      horariosBloquedos = snapBl.exists() ? snapBl.val() : {};
+    } catch(e){ console.error(e); }
+  }
+
+  window.buildWeekGrid = async function(){
+    await carregarDados();
+    const grid = document.getElementById('weekGrid');
+    grid.innerHTML='';
+    const today = new Date();
+    for(let i=0;i<9;i++){
+      const d = new Date(today);
+      d.setDate(today.getDate()+i);
+      const dow = d.getDay();
+      const card = document.createElement('div');
+      card.className='day-card';
+      if(dow===0) card.classList.add('unavailable');
+      if(i===0) card.classList.add('today');
+      card.innerHTML=`<div class="day-name">${DIAS_PT[dow]}</div><div class="day-num">${d.getDate()}</div><div style="font-size:0.65rem;color:var(--muted);margin-top:2px;">${MESES_PT[d.getMonth()]}</div>`;
+      card.dataset.date=d.toISOString().split('T')[0];
+      if(dow!==0) card.onclick=()=>selectDay(card,d,dow);
+      grid.appendChild(card);
+    }
+  }
+
+  function selectDay(card,date,dow){
+    document.querySelectorAll('.day-card').forEach(c=>c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedDay={date,dow,label:`${DIAS_PT[dow]}, ${date.getDate()} de ${MESES_PT[date.getMonth()]}`,iso:date.toISOString().split('T')[0]};
+    selectedTime=null;
+    buildTimeGrid(dow);
+  }
+
+  function buildTimeGrid(dow){
+    const grid = document.getElementById('timeGrid');
+    grid.innerHTML='';
+    const isSat=(dow===6);
+    const startH=isSat?8:9;
+    const endH=isSat?16:19;
+    const takenTimes=agendamentosCache[selectedDay.iso]||[];
+    const bloqueados=(horariosBloquedos[selectedDay.iso])||[];
+    const now=new Date();
+    const isToday=selectedDay.iso===now.toISOString().split('T')[0];
+    const nowMinutes=now.getHours()*60+now.getMinutes();
+
+    for(let h=startH;h<endH;h++){
+      for(let m of [0,30]){
+        const time=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        const slotMinutes=h*60+m;
+        const slot=document.createElement('div');
+        slot.className='time-slot';
+        slot.textContent=time;
+
+        // Passa do horário atual hoje
+        if(isToday && slotMinutes<=nowMinutes){
+          slot.classList.add('bloqueado');
+          slot.title='Horário já passou';
+        } else if(takenTimes.includes(time)){
+          slot.classList.add('taken');
+          slot.title='Horário indisponível';
+        } else if(bloqueados.includes(time)){
+          slot.classList.add('bloqueado');
+          slot.title='Horário bloqueado';
+        } else {
+          slot.onclick=()=>{
+            document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
+            slot.classList.add('selected');
+            selectedTime=time;
+          };
+        }
+        grid.appendChild(slot);
+      }
+    }
+  }
+
+  window.goToStep = async function(n){
+    if(n===2 && selectedServices.length===0){ document.getElementById('err1').classList.add('show'); return; }
+    document.getElementById('err1').classList.remove('show');
+    if(n===3 && (!selectedDay||!selectedTime)){ document.getElementById('err2').classList.add('show'); return; }
+    document.getElementById('err2').classList.remove('show');
+    if(n===4){
+      const nome=document.getElementById('clienteName').value.trim();
+      if(!nome){ document.getElementById('err3').classList.add('show'); return; }
+      document.getElementById('err3').classList.remove('show');
+      document.getElementById('resNome').textContent=nome;
+      document.getElementById('resServico').textContent=selectedServices.join(' + ');
+      document.getElementById('resDia').textContent=selectedDay.label;
+      document.getElementById('resHora').textContent=selectedTime;
+      document.getElementById('resTotal').textContent=formatMoney(getTotal());
+    }
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.getElementById('sec'+n).classList.add('active');
+    for(let i=1;i<=4;i++){
+      const el=document.getElementById('step'+i);
+      el.classList.remove('active','done');
+      if(i<n) el.classList.add('done');
+      else if(i===n) el.classList.add('active');
+    }
+    if(n===2) await buildWeekGrid();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+
+  window.confirmarAgendamento = async function(){
+    const nome=document.getElementById('clienteName').value.trim();
+    const overlay=document.getElementById('loadingOverlay');
+    overlay.classList.add('show');
+    try {
+      const ag={nome,servico:selectedServices.join(' + '),valor:getTotal(),data:selectedDay.iso,diaLabel:selectedDay.label,hora:selectedTime,status:'pendente',criadoEm:new Date().toISOString()};
+      await push(ref(db,'agendamentos'),ag);
+      document.getElementById('nomeConfirmado').textContent=nome;
+      document.getElementById('confServico').textContent=ag.servico;
+      document.getElementById('confDia').textContent=ag.diaLabel;
+      document.getElementById('confHora').textContent=ag.hora;
+      document.getElementById('confTotal').textContent=formatMoney(ag.valor);
+      document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+      document.getElementById('sec5').classList.add('active');
+      document.querySelector('.steps-bar').style.display='none';
+      window.scrollTo({top:0,behavior:'smooth'});
+    } catch(e){ alert('Erro ao salvar. Verifique sua conexão.'); }
+    finally { overlay.classList.remove('show'); }
+  }
+
+  window.novoAgendamento = function(){
+    selectedServices=[];selectedPrices=[];selectedDay=null;selectedTime=null;
+    document.querySelectorAll('.service-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('comboCard').classList.remove('selected');
+    document.getElementById('clienteName').value='';
+    document.querySelector('.steps-bar').style.display='';
+    goToStep(1);
+  }
+</script>
+</body>
+</html>
